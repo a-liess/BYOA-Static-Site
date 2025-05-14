@@ -32,11 +32,24 @@ fs.copySync(
     { overwrite: true }
 );
 
-// Read base template
+// Read templates
 const baseTemplate = fs.readFileSync(
     path.join(templateDir, 'base.html'),
     'utf-8'
 );
+const blogTemplate = fs.readFileSync(
+    path.join(templateDir, 'blog.html'),
+    'utf-8'
+);
+
+// Helper function to format date
+function formatDate(date) {
+    return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
 
 // Build pages
 function buildPages() {
@@ -76,19 +89,21 @@ function buildPages() {
             const { data, content: markdown } = matter(content);
             const html = marked.parse(markdown);
             
-            const finalHtml = baseTemplate
-                .replace('{{title}}', data.title || 'Blog Post')
-                .replace('{{content}}', `
-                    <article class="post">
-                        <h1>${data.title}</h1>
-                        <div class="post-meta">
-                            ${data.date || ''}
-                        </div>
-                        <div class="markdown">
-                            ${html}
-                        </div>
-                    </article>
-                `);
+            // Replace placeholders in blog template
+            let finalHtml = blogTemplate
+                .replace(/{{title}}/g, data.title || 'Blog Post')
+                .replace('{{date}}', formatDate(data.date))
+                .replace('{{content}}', html);
+
+            // Handle optional author field
+            if (data.author) {
+                finalHtml = finalHtml.replace('{{#if author}}', '')
+                    .replace('{{/if}}', '')
+                    .replace('{{author}}', data.author);
+            } else {
+                // Remove author section if no author specified
+                finalHtml = finalHtml.replace(/{{#if author}}[\s\S]*?{{\/if}}/g, '');
+            }
             
             const outputPath = path.join(
                 outputDir,
@@ -101,6 +116,7 @@ function buildPages() {
             posts.push({
                 title: data.title,
                 date: data.date,
+                author: data.author,
                 slug: file.replace('.md', ''),
                 excerpt: data.excerpt || ''
             });
@@ -111,18 +127,23 @@ function buildPages() {
     const blogIndexHtml = baseTemplate
         .replace('{{title}}', 'Blog')
         .replace('{{content}}', `
-            <h1>Blog Posts</h1>
-            <div class="post-list">
-                ${posts
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))
-                    .map(post => `
-                        <article class="post-preview">
-                            <h2><a href="/blog/${post.slug}.html">${post.title}</a></h2>
-                            <div class="post-meta">${post.date}</div>
-                            <p>${post.excerpt}</p>
-                        </article>
-                    `)
-                    .join('')}
+            <div class="blog-content">
+                <h1>Blog Posts</h1>
+                <div class="post-list">
+                    ${posts
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(post => `
+                            <article class="post-preview">
+                                <h2><a href="/blog/${post.slug}.html">${post.title}</a></h2>
+                                <div class="post-meta">
+                                    ${formatDate(post.date)}
+                                    ${post.author ? `<span class="author">by ${post.author}</span>` : ''}
+                                </div>
+                                <p>${post.excerpt}</p>
+                            </article>
+                        `)
+                        .join('')}
+                </div>
             </div>
         `);
     
