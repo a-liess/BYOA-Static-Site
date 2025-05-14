@@ -9,6 +9,14 @@ marked.setOptions({
     mangle: false
 });
 
+// Helper function to calculate reading time
+function calculateReadingTime(text) {
+    const wordsPerMinute = 200;
+    const words = text.trim().split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return minutes;
+}
+
 // Paths
 const contentDir = path.join(__dirname, 'content');
 const templateDir = path.join(__dirname, 'src', 'templates');
@@ -88,11 +96,13 @@ function buildPages() {
             );
             const { data, content: markdown } = matter(content);
             const html = marked.parse(markdown);
+            const readingTime = calculateReadingTime(markdown);
             
             // Replace placeholders in blog template
             let finalHtml = blogTemplate
                 .replace(/{{title}}/g, data.title || 'Blog Post')
                 .replace('{{date}}', formatDate(data.date))
+                .replace('{{reading_time}}', readingTime)
                 .replace('{{content}}', html);
 
             // Handle optional author field
@@ -117,6 +127,7 @@ function buildPages() {
                 title: data.title,
                 date: data.date,
                 author: data.author,
+                readingTime: readingTime,
                 slug: file.replace('.md', ''),
                 excerpt: data.excerpt || ''
             });
@@ -137,7 +148,9 @@ function buildPages() {
                                 <h2><a href="/blog/${post.slug}.html">${post.title}</a></h2>
                                 <div class="post-meta">
                                     ${formatDate(post.date)}
-                                    ${post.author ? `<span class="author">by ${post.author}</span>` : ''}
+                                    <span class="separator"></span>
+                                    <span class="reading-time">${post.readingTime} mins</span>
+                                    ${post.author ? `<span class="separator"></span><span class="author">${post.author}</span>` : ''}
                                 </div>
                                 <p>${post.excerpt}</p>
                             </article>
