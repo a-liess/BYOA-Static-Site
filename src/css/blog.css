@@ -5,6 +5,13 @@
     padding: 2rem;
 }
 
+.blog-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 3rem;
+}
+
 .blog-post {
     background: #fff;
     padding: 2rem;
@@ -90,16 +97,17 @@
 /* Blog index page styles */
 .post-list {
     display: grid;
-    gap: 3rem;
+    gap: 3.5rem;
 }
 
 .post-preview {
     border-bottom: 1px solid #eee;
-    padding-bottom: 3rem;
+    padding-bottom: 3.5rem;
 }
 
 .post-preview:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 
 .post-preview h2 {
@@ -122,9 +130,21 @@
     margin-bottom: 1rem;
 }
 
-.post-preview p {
+.post-preview .excerpt {
     color: #444;
     font-size: 1.1rem;
     line-height: 1.6;
     margin: 1rem 0;
+}
+
+.post-preview .read-more {
+    display: inline-block;
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+.post-preview .read-more:hover {
+    text-decoration: underline;
 } 

@@ -135,30 +135,41 @@ function buildPages() {
     });
 
     // Create blog index
+    const blogIndexContent = `
+        <div class="blog-content">
+            <h1>Latest Posts</h1>
+            <div class="post-list">
+                ${posts
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map(post => `
+                        <article class="post-preview">
+                            <h2><a href="${post.slug}.html">${post.title}</a></h2>
+                            <div class="post-meta">
+                                <time datetime="${post.date}">${formatDate(post.date)}</time>
+                                <span class="separator"></span>
+                                <span class="reading-time">${post.readingTime} mins</span>
+                                ${post.author ? `<span class="separator"></span><span class="author">${post.author}</span>` : ''}
+                            </div>
+                            <p class="excerpt">${post.excerpt}</p>
+                            <a href="${post.slug}.html" class="read-more">Read more →</a>
+                        </article>
+                    `)
+                    .join('')}
+            </div>
+        </div>
+    `;
+
+    // Create a special version of the base template for the blog index
     const blogIndexHtml = baseTemplate
         .replace('{{title}}', 'Blog')
-        .replace('{{content}}', `
-            <div class="blog-content">
-                <h1>Blog Posts</h1>
-                <div class="post-list">
-                    ${posts
-                        .sort((a, b) => new Date(b.date) - new Date(a.date))
-                        .map(post => `
-                            <article class="post-preview">
-                                <h2><a href="/blog/${post.slug}.html">${post.title}</a></h2>
-                                <div class="post-meta">
-                                    ${formatDate(post.date)}
-                                    <span class="separator"></span>
-                                    <span class="reading-time">${post.readingTime} mins</span>
-                                    ${post.author ? `<span class="separator"></span><span class="author">${post.author}</span>` : ''}
-                                </div>
-                                <p>${post.excerpt}</p>
-                            </article>
-                        `)
-                        .join('')}
-                </div>
-            </div>
-        `);
+        .replace('<link rel="stylesheet" href="css/style.css">', '<link rel="stylesheet" href="../css/style.css">')
+        .replace('<link rel="stylesheet" href="css/blog.css">', '<link rel="stylesheet" href="../css/blog.css">')
+        .replace('<script src="js/main.js">', '<script src="../js/main.js">')
+        .replace('href="/"', 'href="../"')
+        .replace('href="blog"', 'href="."')
+        .replace('href="about.html"', 'href="../about.html"')
+        .replace('href="faq.html"', 'href="../faq.html"')
+        .replace('{{content}}', blogIndexContent);
     
     fs.writeFileSync(path.join(outputDir, 'blog', 'index.html'), blogIndexHtml);
 }
